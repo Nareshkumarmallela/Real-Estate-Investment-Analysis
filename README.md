@@ -105,8 +105,11 @@ Price Deviation = Predicted Price – Actual Price
 ## Repository Structure
 
 ├── San Francisco Housing Investment Analysis.Rmd
+
 ├── San-Francisco-Real-Estate-Valuation_Final.pptx
+
 ├── SF_Real_Estate_Valuation_Proposal_HW2.docx
+
 ├── README.md
 
 
