@@ -1,136 +1,123 @@
-🏙️ San Francisco Real Estate Valuation & Investment Analysis
-📌 Project Overview
+# San Francisco Real Estate Valuation & Investment Analysis
 
-This project develops a data-driven real estate valuation framework to identify undervalued residential properties in San Francisco following the 2008 financial crisis. Using predictive modeling and regression analysis, the study supports strategic investment decisions under a $7 million budget constraint, recommending optimal combinations of three properties that maximize potential returns.
+## Project Description
+This project develops a data-driven real estate valuation framework to identify undervalued residential properties in San Francisco following the 2008 financial crisis. Using regression-based predictive modeling, the analysis supports strategic investment decisions under a $7 million budget constraint by recommending optimal combinations of three properties.
 
-The project is framed around a real-world case study — The Milton Campos Investment Challenge — where an investor with limited real estate expertise relies on analytics for decision-making.
+The project is based on the Milton Campos Investment Challenge, where analytics-driven valuation replaces subjective decision-making.
 
-🎯 Objectives
+---
 
-Estimate fair market value of residential properties using predictive models
+## Objectives
+- Estimate fair market values of residential properties
+- Identify undervalued properties using predictive analytics
+- Compare multiple regression models and select the best-performing model
+- Recommend three-property investment combinations within a fixed budget
+- Provide a transparent and reproducible analytical framework
 
-Identify undervalued properties based on price deviation
+---
 
-Compare multiple regression techniques and select the most reliable model
+## Dataset Overview
+- Total Listings: 1,396 residential properties
+- Time Period: February 2008 – July 2009
+- Price Range: $100,000 – $9,500,000
 
-Recommend top 3-property investment combinations within a fixed budget
+### Features Used
+- Numerical: Price, Bedrooms, Square Feet, Lot Size
+- Categorical: Neighborhood, Zip Code, Loft
+- Temporal: Listing Date
 
-Provide a transparent and reproducible analytical framework
+---
 
-🗂️ Dataset
+## Tools and Technologies
+- R: Data cleaning, transformation, and regression modeling
+- Power BI: Visualization and investment ranking
+- Excel: Source dataset management
 
-Source: San Francisco Properties (XLS924-XLS-ENG.xlsx)
+---
 
-Records: 1,396 property listings
+## Methodology
 
-Time Period: February 2008 – July 2009
+### Data Preparation
+- Converted categorical variables to factors
+- Treated outliers using IQR-based capping
+- Applied log transformation to price
+- Verified dataset completeness (no missing values)
 
-Price Range: $100,000 – $9,500,000
+### Modeling Approach
+- Train-validation split: 70% training, 30% validation
+- Models evaluated:
+  - Multiple Linear Regression
+  - Stepwise Regression
+  - Regression Tree
 
-Key Features
+### Evaluation Metric
+- Root Mean Square Error (RMSE)
 
-Numerical: Price, Bedrooms, Square Feet, Lot Size
+---
 
-Categorical: Neighborhood (Low/Medium/High), Zip Code, Loft
+## Model Performance
+Multiple Linear Regression achieved the lowest and most stable RMSE across both training and validation datasets. Its strong generalization ability and interpretability make it the most reliable valuation model for this study.
 
-Temporal: Listing Date
+---
 
-Identifier: Property ID
+## Investment Strategy
 
-🛠️ Tools & Technologies
-
-R – Data cleaning, transformation, regression modeling
-
-Power BI – Visualization, ranking investment combinations
-
-Excel – Initial data storage and review
-
-🔍 Methodology
-1. Data Preparation
-
-Converted categorical variables to factors
-
-Handled outliers using IQR-based capping
-
-Applied log transformation to correct price skewness
-
-Verified dataset completeness (no missing values)
-
-2. Model Development
-
-Data split: 70% Training / 30% Validation
-
-Models evaluated:
-
-Multiple Linear Regression (MLR)
-
-Stepwise Regression
-
-Regression Tree
-
-3. Model Evaluation
-
-Performance measured using RMSE
-
-Stability and generalization assessed across training and validation datasets
-
-📈 Model Performance Summary
-
-Multiple Linear Regression emerged as the best-performing model due to:
-
-Lowest and most stable RMSE
-
-Strong generalization (no overfitting)
-
-High interpretability and simplicity
-
-💰 Investment Strategy
-Price Deviation Formula
+### Price Deviation Formula
 Price Deviation = Predicted Price – Actual Price
 
+- Positive deviation indicates an undervalued property
+- Properties ranked based on deviation
 
-Positive deviation → Undervalued property
+### Investment Constraints
+- Total Budget: $7 million
+- Number of Properties: 3
 
-Properties ranked by deviation to identify best opportunities
+### Output
+- Top 10 three-property combinations ranked by:
+  - Combined purchase price
+  - Combined price deviation
 
-Investment Constraints
+---
 
-Total Budget: $7 million
+## Key Insights
+- Post-crisis San Francisco listings show significant undervaluation
+- Regression-based valuation performs well in volatile markets
+- Portfolio-level optimization improves investment outcomes
+- Data-driven decisions reduce bias and risk
 
-Properties: Exactly 3 per investment portfolio
+---
 
-Output
+## Limitations
+- Analysis is based on historical data only
+- Qualitative property attributes are not included
+- Requires retraining with updated data for future use
 
-Top 10 three-property combinations ranked by:
+---
 
-Combo Price (sum of actual prices)
+## Future Enhancements
+- Time-series modeling for price trends
+- Integration of macroeconomic indicators
+- Advanced models such as ensemble methods or neural networks
+- Geospatial analysis for location-based valuation
 
-Combo Deviation (sum of predicted gains)
+---
 
-🏆 Key Findings
+## Repository Structure
 
-Significant undervaluation exists in post-crisis San Francisco listings
+├── San Francisco Housing Investment Analysis.Rmd
+├── San-Francisco-Real-Estate-Valuation_Final.pptx
+├── SF_Real_Estate_Valuation_Proposal_HW2.docx
+├── README.md
 
-Regression-based valuation is effective in volatile markets
 
-Optimal 3-property combinations maximize return while respecting budget limits
+---
 
-Data-driven approach improves transparency and reduces investment risk
+## Author
+Naresh Kumar Mallela  
+University of New Haven  
 
-⚠️ Limitations
+---
 
-Relies on historical data; future market shifts not captured
-
-Does not include qualitative factors (property condition, curb appeal)
-
-Requires periodic retraining for continued accuracy
-
-🚀 Future Enhancements
-
-Incorporate time-series analysis for price trends
-
-Add macroeconomic indicators (interest rates, employment)
-
-Explore ensemble models or neural networks
-
-Integrate geospatial analysis for location-based effects
+## License
+This project is intended for academic and educational purposes.
+Reuse is permitted with proper attribution.
