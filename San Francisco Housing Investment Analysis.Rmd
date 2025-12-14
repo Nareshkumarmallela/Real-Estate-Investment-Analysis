@@ -1,0 +1,239 @@
+---
+title: "Investment Analysis on House Prices"
+author: "Naresh Kumar Mallela"
+date: "2025-11-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## IMPORTING DATA AND LIBRARIES
+
+
+```{r}
+# Load required libraries
+library(tidyverse)
+library(readxl)
+library(forecast)
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+# Load the dataset
+data <- read_excel("XLS924-XLS-ENG.xlsx", sheet = "San Francisco Properties")
+```
+
+## EXPLORATORY DATA ANALYSIS
+
+### Data Structure
+
+
+```{r}
+# Examine data structure
+str(data)
+```
+
+The initial data inspection reveals a dataset of 1,396 rows and 12 columns. To prepare for analysis, the data types of several variables must be corrected. Specifically, the Neighborhood variable is currently encoded as a character (chr) but should be a categorical factor. Similarly, the Zipcode and Loft variables are stored as numeric when they also represent categorical factors. The code below addresses these data type conversions.
+
+### Data Type Conversion
+
+```{r}
+# Convert categorical variables to factors
+data$`Zip Code` <- as.factor(data$`Zip Code`)
+data$Neighborhood <- factor(data$Neighborhood, levels = c("Low","Medium","High"))
+data$Loft <- factor(data$Loft, levels = c(0,1))
+
+# Display summary statistics
+summary(data)
+```
+
+The dataset encompasses house listings from February 20, 2008, to July 10, 2009, with prices ranging from $100,000 to $9,500,000. Initial analysis indicates the potential for outliers, as the maximum values for Price, Bedrooms, SquareFeet, and LotSize are significantly distant from their respective third quartile values. Furthermore, the summary statistics reveal that a small number of neighborhoods are categorized as high-end or premium compared to the rest.
+
+### Missing Values Check
+
+```{r}
+# Check for missing values
+sapply(data, function(x) sum(is.na(x)))
+```
+
+Having confirmed no missing values via str() and prior checks, we now generate boxplots to visualize data spread and detect outliers.
+
+### Data Visualization
+```{r}
+# Normalize and visualize numerical variables
+options(scipen = 999)
+
+normalized_data <- data %>% 
+  select(Price, Bedrooms, `Square feet`, Lotsize) %>% 
+  scale()
+
+boxplot(normalized_data, 
+        col = c('lightblue', 'orange', 'lightgreen', 'maroon'),
+        main = "Boxplot of Normalized Numerical Variables",
+        names = c("Price", "Bedrooms", "Square Feet", "Lot Size"))
+```
+
+The boxplots reveal multiple outliers in the four columns previously discussed. To enable a meaningful combined visualization, the data was normalized to a common scale prior to plotting. Before deciding on any corrective measures, we will first investigate the nature of these outliers by filtering and examining the corresponding records.
+
+### Outlier Analysis
+
+```{r}
+# Identify price outliers
+Outliers_price <- boxplot.stats(data$Price)$out
+outlier_rows <- data[data$Price %in% Outliers_price,]
+head(outlier_rows)
+```
+
+The identified outliers are valid observations, not errors. To minimize their impact on statistical models, we will cap the extreme values at appropriate upper and lower thresholds (e.g., based on IQR or percentiles).
+
+## DATA PREPROCESSING
+
+### Handling Outliers
+
+```{r}
+# Function to cap outliers using IQR method
+cap_outliers <- function(x, factor = 1.5) {
+  qnt <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+  iqr <- IQR(x, na.rm = TRUE)
+  lower <- qnt[1] - factor * iqr
+  upper <- qnt[2] + factor * iqr
+  
+  # Cap the values instead of removing
+  x[x < lower] <- lower
+  x[x > upper] <- upper
+  return(x)
+}
+
+# Create a copy of the data for outlier treatment
+data_capped <- data
+
+# Cap outliers in numerical variables
+data_capped$Bedrooms <- cap_outliers(data_capped$Bedrooms)
+data_capped$`Square feet` <- cap_outliers(data_capped$`Square feet`)
+data_capped$Lotsize <- cap_outliers(data_capped$Lotsize)
+
+# Apply log transformation for price to handle skewness
+data_capped$Log_Price <- log(data_capped$Price)
+```
+
+## MODEL PREPERATION
+
+### Feature Selection
+```{r}
+# Select relevant features for modeling
+Model_data <- data_capped[, c(13, 5, 7, 8, 9, 10, 11, 12)]
+colnames(Model_data)[1] <- "Price"
+
+# Display selected features
+head(Model_data)
+
+```
+
+### Data Partitioning
+
+```{r}
+set.seed(1)
+train_index <- sample(as.numeric(row.names(Model_data)), 
+                     length(Model_data$Price) * 0.7)
+train_data <- Model_data[train_index, ]
+valid_data <- Model_data[-train_index, ]
+```
+
+
+## MODEL DEVELOPMENT
+
+### Multiple Linear Regression
+
+```{r}
+# Build linear regression model
+lm_model <- lm(Price ~ ., data = train_data)
+summary(lm_model)
+
+# Training accuracy
+lm_train_acc <- accuracy(lm_model$fitted.values, train_data$Price)
+
+# Validation predictions and accuracy
+lm_model_pred <- predict(lm_model, valid_data)
+lm_valid_acc <- accuracy(lm_model_pred, valid_data$Price)
+
+```
+### Stepwise Regression
+
+```{r}
+
+# Perform stepwise regression
+lm_model_step <- step(lm_model, direction = "both")
+summary(lm_model_step)
+
+# Training accuracy for stepwise model
+slm_train_acc <- accuracy(lm_model_step$fitted.values,train_data$Price)
+
+# Validation predictions and accuracy
+lm_model_step_pred <- predict(lm_model_step,valid_data)
+slm_valid_acc <- accuracy(lm_model_pred,valid_data$Price)
+```
+### Decision Tree Regression
+
+```{r}
+# Build regression tree
+tree_model <- rpart(Price ~ ., 
+                    data = train_data, 
+                    method = "anova",
+                    control = rpart.control(cp = 0.01, minsplit = 20))
+
+# Visualize the tree
+rpart.plot(tree_model, 
+           main = "Regression Tree for House Prices",
+           fallen.leaves = TRUE,
+           type = 4,
+           extra = 101)
+```
+
+
+```{r}
+# Variable importance
+print("Variable Importance - Decision Tree:")
+print(tree_model$variable.importance)
+
+# Tree predictions and accuracy
+tree_train_pred <- predict(tree_model, train_data)
+tree_valid_pred <- predict(tree_model, valid_data)
+
+tree_train_acc <- accuracy(tree_train_pred, train_data$Price)
+tree_valid_acc <- accuracy(tree_valid_pred, valid_data$Price)
+```
+
+## MODEL COMPARSION
+```{r}
+# Compare model performance
+Performance_metrics <- data.frame(
+  Model_Name = c("Multiple Linear Regression", "Multiple Linear Regression", 
+                 "Stepwise Regression Model", "Stepwise Regression Model", 
+                 "Regression Tree", "Regression Tree"),
+  Partition_type = c("Training Data", "Validation Data", 
+                     "Training Data", "Validation Data", 
+                     "Training Data", "Validation Data"),
+  RMSE = c(lm_train_acc[2], lm_valid_acc[2], 
+           slm_train_acc[2], slm_valid_acc[2], 
+           tree_train_acc[2], tree_valid_acc[2])
+)
+Performance_metrics$RMSE <- round(Performance_metrics$RMSE,4)
+# Display performance metrics
+Performance_metrics
+```
+From the above results Multiple Linear Regression delivers the lowest and most stable RMSE across both training and validation sets, showing that it generalizes well to unseen data. Its consistency reflects a balanced model that avoids overfitting while still capturing key relationships in the dataset. Overall, MLR provides strong accuracy without adding unnecessary complexity, making it the most dependable choice among the evaluated methods.
+
+## FINAL PREDICTIONS
+```{r}
+# Generate predictions for all data points
+house_FairPrice <- predict(lm_model, Model_data)
+data["Predicted Price"] <- round(exp(house_FairPrice), 0)
+
+# Save results
+write.csv(data, file = "Predicted_House_prices.csv", row.names = FALSE)
+write.csv(Performance_metrics, file = "Performance_metrics.csv", row.names = FALSE)
+```
+
